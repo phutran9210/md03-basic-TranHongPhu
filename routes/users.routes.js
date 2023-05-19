@@ -6,6 +6,18 @@ const path = require("path");
 
 const usersFilePath = path.join(__dirname, "../dataJson/users.json");
 
+const postFilePath = path.join(__dirname, "../dataJson/posts.json");
+
+const readPostFile = (callback) => {
+  fs.readFile(postFilePath, "utf-8", (err, data) => {
+    if (err) {
+      callback(err);
+    } else {
+      const dataPosts = JSON.parse(data);
+      callback(null, dataPosts);
+    }
+  });
+};
 const readUsersFile = (callback) => {
   fs.readFile(usersFilePath, "utf-8", (err, data) => {
     if (err) {
@@ -152,4 +164,25 @@ router.delete("/:id", (req, res) => {
     }
   });
 });
+// Lấy toàn bộ post của User theo id
+router.get("/:id/posts", (req, res) => {
+  readPostFile((error, dataPosts) => {
+    if (error) {
+      res.status(500).json({
+        error: error.message,
+      });
+    } else {
+      const posts = dataPosts.filter(
+        (post) => post.userId === parseInt(req.params.id)
+      );
+      if (posts.length === 0) {
+        return res.status(404).json({
+          message: "Không tìm thấy post nào cho user này",
+        });
+      }
+      return res.status(200).json(posts);
+    }
+  });
+});
+
 module.exports = router;
